@@ -47,6 +47,8 @@ def compiler_version():
   version = proc.communicate()[0].split('.')
   version = map(int, version[:2])
   version = tuple(version)
+  if len(version) == 1:
+      version = (version[0], 0)
   return (version, is_clang)
 
 
