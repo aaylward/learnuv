@@ -30,7 +30,7 @@ void open_cb(uv_fs_t* open_req) {
   read_req->data = context;
 
   /* 5. Read from the file into the buffer */
-  r = uv_fs_read(uv_default_loop(), read_req, context->open_req->result, &context->iov, 1, -1, read_cb);
+  r = uv_fs_read(uv_default_loop(), read_req, open_req->result, &context->iov, 1, -1, read_cb);
   if (r < 0) CHECK(r, "uv_fs_read");
 }
 
