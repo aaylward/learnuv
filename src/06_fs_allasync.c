@@ -21,21 +21,24 @@ void open_cb(uv_fs_t* open_req) {
   context_t* context = open_req->data;
 
   /* 3. Create buffer and initialize it */
+  char *buf = calloc(1, sizeof(char) * (BUF_SIZE + 1));
+  context->iov = uv_buf_init(buf, BUF_SIZE);
 
   /* 4. Setup read request */
-  uv_fs_t *read_req = NULL; /* = malloc ... */
-  context->read_req = NULL; /* = ? */
-  read_req->data = NULL;    /* = ? */
+  uv_fs_t *read_req = malloc(sizeof(uv_fs_t));
+  context->read_req = read_req;
+  read_req->data = context;
 
   /* 5. Read from the file into the buffer */
+  r = uv_fs_read(uv_default_loop(), read_req, context->open_req->result, &context->iov, 1, -1, read_cb);
   if (r < 0) CHECK(r, "uv_fs_read");
 }
 
 void read_cb(uv_fs_t* read_req) {
-  int r = 0;;
+  int r = 0;
   if (read_req->result < 0) CHECK(read_req->result, "uv_fs_read callback");
 
-  context_t* context = NULL; /* = ? */
+  context_t* context = read_req->data;
 
   /* 6. Report the contents of the buffer */
   log_report("%s", context->iov.base);
@@ -44,10 +47,10 @@ void read_cb(uv_fs_t* read_req) {
   free(context->iov.base);
 
   /* 7. Setup close request */
-  uv_fs_t *close_req = NULL;
-  /* ? */
+  uv_fs_t *close_req = malloc(sizeof(uv_fs_t));
 
   /* 8. Close the file descriptor */
+  r = uv_fs_close(uv_default_loop(), close_req, context->open_req->result, NULL);
   if (r < 0) CHECK(r, "uv_fs_close");
 }
 
@@ -74,6 +77,7 @@ void init(uv_loop_t *loop) {
   open_req->data = context;
 
   /* 2. Open file */
+  r = uv_fs_open(uv_default_loop(), open_req, filename, O_RDONLY, 0, open_cb);
   if (r < 0) CHECK(r, "uv_fs_open");
 }
 
